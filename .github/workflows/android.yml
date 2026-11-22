@@ -23,6 +23,13 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: ''   # skip the removed legacy 'tools' package; install exacts below
+
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       # If no real google-services.json is committed (it is gitignored), fall back
       # to the committed placeholder so the build succeeds. The resulting APK
