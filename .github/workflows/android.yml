@@ -31,13 +31,23 @@ jobs:
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-      # If no real google-services.json is committed (it is gitignored), fall back
-      # to the committed placeholder so the build succeeds. The resulting APK
-      # installs and the UI works; Firebase sync only works once you replace this
-      # with your real file from the Firebase console.
+      # Priority: (1) a GOOGLE_SERVICES_JSON repo secret -> a fully live APK;
+      # (2) a committed google-services.json; (3) the committed placeholder, which
+      # builds and runs the UI but cannot connect to Firebase.
       - name: Ensure google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
-          if [ ! -f app/google-services.json ]; then
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            # Accept either raw JSON or base64-encoded JSON in the secret.
+            printf '%s' "$GOOGLE_SERVICES_JSON" | base64 -d > /tmp/gs.json 2>/dev/null || true
+            if head -c1 /tmp/gs.json 2>/dev/null | grep -q '{'; then
+              cp /tmp/gs.json app/google-services.json
+            else
+              printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+            fi
+            echo "Using google-services.json from repo secret (Firebase enabled)."
+          elif [ ! -f app/google-services.json ]; then
             cp app/google-services.placeholder.json app/google-services.json
             echo "Using placeholder google-services.json (Firebase sync disabled)."
           fi

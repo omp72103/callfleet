@@ -14,6 +14,7 @@ import com.callfleet.app.CallFleetApp
 import com.callfleet.app.R
 import com.callfleet.app.data.CallLogRepository
 import com.callfleet.app.data.FirebaseSync
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +32,10 @@ import java.io.File
  */
 class MonitoringService : Service() {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // Backstop: any uncaught coroutine failure (e.g. Firebase auth with an
+    // unconfigured/placeholder key) is logged, never crashes the app.
+    private val errorHandler = CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + errorHandler)
     private val sync = FirebaseSync()
 
     private val recorder = CallRecorder()
@@ -111,16 +115,21 @@ class MonitoringService : Service() {
         val ctx = applicationContext
         val deviceId = CallFleetApp.deviceId(ctx)
         val fleetId = CallFleetApp.fleetId(ctx)
-        sync.ensureSignedIn()
-        val recordingSupported = CallRecorder().isLikelySupported()
-        sync.registerDevice(fleetId, deviceId, CallFleetApp.label(ctx), recordingSupported)
-
         val repo = CallLogRepository(ctx)
         var lastSynced = CallFleetApp.prefs(ctx).getLong(KEY_LAST, 0L)
+        var registered = false
 
+        // Everything that touches Firebase is inside the try, so an unconfigured
+        // or offline backend never crashes the app — it just retries next cycle.
         while (true) {
-            if (hasCallLogPermission()) {
-                try {
+            try {
+                sync.ensureSignedIn()
+                if (!registered) {
+                    val recordingSupported = CallRecorder().isLikelySupported()
+                    sync.registerDevice(fleetId, deviceId, CallFleetApp.label(ctx), recordingSupported)
+                    registered = true
+                }
+                if (hasCallLogPermission()) {
                     val entries = repo.readSince(lastSynced)
                     if (entries.isNotEmpty()) {
                         sync.uploadCalls(fleetId, deviceId, entries)
@@ -128,7 +137,11 @@ class MonitoringService : Service() {
                         CallFleetApp.prefs(ctx).edit().putLong(KEY_LAST, lastSynced).apply()
                     }
                     sync.touch(fleetId, deviceId, entries.size)
-                } catch (_: Exception) { /* offline: retry next cycle */ }
+                }
+            } catch (e: Throwable) {
+                // Firebase not configured (placeholder key), offline, or rules —
+                // keep the service alive and try again on the next cycle.
+                e.printStackTrace()
             }
             delay(SYNC_INTERVAL_MS)
         }
