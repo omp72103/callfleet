@@ -2,6 +2,10 @@ package com.callfleet.app
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import com.callfleet.app.ui.CrashActivity
+import com.google.firebase.FirebaseApp
+import java.io.File
 import java.util.UUID
 
 class CallFleetApp : Application() {
@@ -9,6 +13,43 @@ class CallFleetApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        // Show crashes on screen instead of silently closing, and save them to a
+        // file, so startup failures can be read rather than guessed at.
+        installCrashHandler()
+
+        // Initialise Firebase defensively: a bad/placeholder google-services.json
+        // must never take the whole app down at launch.
+        try {
+            FirebaseApp.initializeApp(this)
+        } catch (e: Throwable) {
+            // Sync just won't work until a real config is added; the app still runs.
+            e.printStackTrace()
+        }
+    }
+
+    private fun installCrashHandler() {
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                val trace = android.util.Log.getStackTraceString(throwable)
+                val text = "CallFleet crash\n\n${throwable}\n\n$trace"
+                // Persist to Android/data/com.callfleet.app/files/last_crash.txt
+                runCatching {
+                    File(getExternalFilesDir(null), "last_crash.txt").writeText(text)
+                }
+                // Show it on screen in a fresh process task.
+                val i = Intent(this, CrashActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .putExtra(CrashActivity.EXTRA_TRACE, text)
+                startActivity(i)
+            } catch (_: Throwable) {
+                // ignore – fall through to default handling
+            }
+            previous?.uncaughtException(thread, throwable)
+            android.os.Process.killProcess(android.os.Process.myPid())
+            kotlin.system.exitProcess(10)
+        }
     }
 
     companion object {

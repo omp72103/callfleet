@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Read the device's own call history -->
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
@@ -53,6 +54,20 @@
             android:name=".service.MonitoringService"
             android:exported="false"
             android:foregroundServiceType="dataSync|microphone" />
+
+        <!-- Crash screen (shown by the global handler in CallFleetApp). -->
+        <activity
+            android:name=".ui.CrashActivity"
+            android:exported="false"
+            android:process=":crash" />
+
+        <!-- Initialise Firebase manually (guarded) in CallFleetApp instead of at
+             process start, so a placeholder/invalid config can't crash launch. -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            android:exported="false"
+            tools:node="remove" />
 
     </application>
 </manifest>
