@@ -24,28 +24,15 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # If no real google-services.json is committed (it is gitignored), write a
-      # syntactically valid placeholder so the build succeeds. The resulting APK
+      # If no real google-services.json is committed (it is gitignored), fall back
+      # to the committed placeholder so the build succeeds. The resulting APK
       # installs and the UI works; Firebase sync only works once you replace this
       # with your real file from the Firebase console.
       - name: Ensure google-services.json
         run: |
           if [ ! -f app/google-services.json ]; then
-            cp app/google-services.json.template app/google-services.json
-            python3 - <<'PY'
-import json
-p="app/google-services.json"
-d=json.load(open(p))
-d.pop("_comment",None)
-d["project_info"]["project_number"]="000000000000"
-d["project_info"]["project_id"]="callfleet-placeholder"
-d["project_info"]["storage_bucket"]="callfleet-placeholder.appspot.com"
-c=d["client"][0]
-c["client_info"]["mobilesdk_app_id"]="1:000000000000:android:0000000000000000000000"
-c["api_key"][0]["current_key"]="AIzaSyDUMM_PLACEHOLDER_KEY_000000000000000"
-json.dump(d,open(p,"w"),indent=2)
-print("placeholder google-services.json written")
-PY
+            cp app/google-services.placeholder.json app/google-services.json
+            echo "Using placeholder google-services.json (Firebase sync disabled)."
           fi
 
       - name: Build debug APK
