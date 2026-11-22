@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// CallFleet Storage rules — recordings, shared-fleet model.
+// Recordings live under recordings/{fleetId}/{deviceId}/. Access is gated by
+// knowing the fleet code (any signed-in device may read/write its fleet's
+// recordings). Choose a strong fleet code. For stricter control, add an admin
+// login and restrict reads to that UID.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /recordings/{fleetId}/{deviceId}/{file} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

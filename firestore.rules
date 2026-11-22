@@ -1,0 +1,24 @@
+rules_version = '2';
+
+// CallFleet Firestore rules — shared-fleet model (no per-admin login).
+//
+// Every device in a fleet signs in anonymously and reads/writes under its
+// fleet node. The FLEET CODE is the shared secret that gates access, so:
+//   • Choose a long, non-obvious fleet code (treat it like a password).
+//   • Anyone who knows the code AND is signed in can read that fleet's data.
+//
+// This is the deliberate trade-off for dropping the admin email/password:
+// convenience (every device just shows the dashboard) in exchange for weaker
+// access control. If you need stronger security, re-introduce an admin login
+// and gate reads by UID instead.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /fleets/{fleetId}/devices/{deviceId} {
+      allow read, write: if request.auth != null;
+      match /calls/{callId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+  }
+}

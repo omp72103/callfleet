@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="28dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/welcome_tagline"
+        android:gravity="center"
+        android:textColor="#666666"
+        android:paddingTop="8dp"
+        android:paddingBottom="28dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/fleet_code_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editFleet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textNoSuggestions" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/fleet_code_help"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:paddingTop="6dp"
+        android:paddingBottom="32dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEnroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/enroll_this_device" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/enroll_sub"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:paddingTop="6dp"
+        android:paddingBottom="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAdmin"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/open_admin_panel" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/admin_sub"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:paddingTop="6dp" />
+</LinearLayout>

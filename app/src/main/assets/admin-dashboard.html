@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CallFleet — Admin Panel</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --txt:#e7eaf0; --muted:#8b93a7; --accent:#4c8dff; --accent2:#1f6feb;
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--txt);font-size:14px}
+  header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--panel);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#4c8dff,#1f6feb);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+  header h1{font-size:16px;margin:0;font-weight:600}
+  header .sp{flex:1}
+  .pill{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--panel2);color:var(--muted);
+    border:1px solid var(--line)}
+  .pill.live{color:var(--green);border-color:#1d3326}
+  .pill.demo{color:var(--amber);border-color:#3a2f12}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500}
+  .btn{background:var(--accent2);color:#fff}
+  .btn:hover{background:var(--accent)}
+  .btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .wrap{display:flex;min-height:calc(100vh - 59px)}
+  aside{width:260px;background:var(--panel);border-right:1px solid var(--line);padding:14px;overflow:auto}
+  aside h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:6px 4px 10px}
+  .dev{padding:10px;border-radius:10px;border:1px solid var(--line);margin-bottom:8px;cursor:pointer;background:var(--panel2)}
+  .dev:hover{border-color:var(--accent)}
+  .dev.active{border-color:var(--accent);background:#17233d}
+  .dev .nm{font-weight:600}
+  .dev .mt{font-size:12px;color:var(--muted);margin-top:3px}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .dot.on{background:var(--green)} .dot.off{background:var(--muted)}
+  main{flex:1;padding:20px;overflow:auto}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .card .k{font-size:12px;color:var(--muted)} .card .v{font-size:24px;font-weight:700;margin-top:4px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  input,select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:8px 10px;
+    border-radius:8px;font-size:13px;font-family:inherit}
+  input::placeholder{color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:var(--radius);overflow:hidden}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
+  tr:hover td{background:var(--panel2)}
+  .tag{font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+  .t-in{background:#12301c;color:#4fd168} .t-out{background:#102440;color:#5aa0ff}
+  .t-miss{background:#3a1416;color:#ff6b6b} .t-rej{background:#2a2f3a;color:#9aa3b5}
+  .empty{text-align:center;color:var(--muted);padding:40px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal.show{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;width:min(520px,92vw)}
+  .sheet h3{margin:0 0 4px} .sheet p{color:var(--muted);margin:0 0 16px}
+  .sheet label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  .sheet textarea{width:100%;height:120px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:8px;padding:10px;font-family:ui-monospace,monospace;font-size:12px}
+  .row{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+  .rec a{color:var(--accent)} .muted{color:var(--muted)}
+  @media(max-width:760px){.wrap{flex-direction:column}aside{width:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CF</div>
+  <h1>CallFleet Admin</h1>
+  <span id="modePill" class="pill demo">Demo mode</span>
+  <div class="sp"></div>
+  <button class="btn ghost" id="connectBtn">Connect Firebase</button>
+  <button class="btn ghost" id="exportHtmlBtn">Export HTML</button>
+  <button class="btn ghost" id="exportCsvBtn">Export CSV</button>
+  <button class="btn" id="printBtn">Print / PDF</button>
+</header>
+
+<div class="wrap">
+  <aside>
+    <h2>Devices</h2>
+    <div id="deviceList"></div>
+  </aside>
+  <main>
+    <div class="cards" id="statCards"></div>
+    <div class="toolbar">
+      <input id="search" placeholder="Search number or name…" style="flex:1;min-width:180px" />
+      <select id="typeFilter">
+        <option value="">All types</option>
+        <option value="INCOMING">Incoming</option>
+        <option value="OUTGOING">Outgoing</option>
+        <option value="MISSED">Missed</option>
+        <option value="REJECTED">Rejected</option>
+      </select>
+      <input id="fromDate" type="date" />
+      <input id="toDate" type="date" />
+      <button class="btn ghost" id="clearBtn">Clear</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="name">Contact / Number</th>
+          <th data-sort="type">Type</th>
+          <th data-sort="timestamp">When</th>
+          <th data-sort="durationSec">Duration</th>
+          <th>Recording</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="emptyState" class="empty" style="display:none">No calls match these filters.</div>
+  </main>
+</div>
+
+<div id="playerBar" style="display:none;position:sticky;bottom:0;align-items:center;gap:12px;
+  padding:10px 16px;background:var(--panel);border-top:1px solid var(--line)">
+  <span id="playerTitle" style="font-size:13px;min-width:160px"></span>
+  <audio id="player" controls style="flex:1"></audio>
+  <button class="btn ghost" onclick="document.getElementById('player').pause();document.getElementById('playerBar').style.display='none'">Close</button>
+</div>
+
+<!-- Firebase connect modal -->
+<div class="modal" id="connectModal">
+  <div class="sheet">
+    <h3>Connect this dashboard</h3>
+    <p>Inside the CallFleet app this connects automatically. In a browser, paste your Firebase web config (Project settings → Your apps → Web app) and the fleet code you used on your phones.</p>
+    <label>firebaseConfig (JSON or JS object)</label>
+    <textarea id="cfgInput" placeholder='{ "apiKey": "…", "authDomain": "…", "projectId": "…", "storageBucket": "…", "appId": "…" }'></textarea>
+    <label>Fleet code</label>
+    <input id="fleetInput" style="width:100%" placeholder="the same code entered on every device" />
+    <div class="row">
+      <button class="btn ghost" id="cancelConnect">Cancel</button>
+      <button class="btn" id="doConnect">Connect</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+"use strict";
+
+/* ---------- State ---------- */
+let MODE = "demo";          // "demo" | "live"
+let devices = [];           // DeviceInfo[]
+let callsByDevice = {};     // deviceId -> CallLogEntry[]
+let activeDevice = null;
+let sortKey = "timestamp", sortDir = -1;
+
+/* ---------- Demo data ---------- */
+function makeDemo(){
+  const names = ["Yashodara Milk","Supplier A","Ravi Transport","Unknown","Clinic","Bank","Sita","Distributor","Vet","Cold Storage"];
+  const types = ["INCOMING","OUTGOING","MISSED","REJECTED"];
+  const devs = [
+    {deviceId:"dev-01",label:"Front desk phone",model:"Samsung SM-A155",androidVersion:"Android 14",recordingSupported:false,lastSeen:Date.now()-120000},
+    {deviceId:"dev-02",label:"Field phone 1",model:"Xiaomi Redmi 10",androidVersion:"Android 12",recordingSupported:true,lastSeen:Date.now()-3600_000},
+    {deviceId:"dev-03",label:"Manager phone",model:"Pixel 7",androidVersion:"Android 15",recordingSupported:false,lastSeen:Date.now()-5*86400_000},
+  ];
+  const cb = {};
+  devs.forEach((d,di)=>{
+    const n = 40 + di*15;
+    const arr = [];
+    for(let i=0;i<n;i++){
+      const t = types[Math.floor(Math.random()*types.length)];
+      const ts = Date.now() - Math.floor(Math.random()*20*86400_000);
+      const dur = (t==="MISSED"||t==="REJECTED")?0:Math.floor(Math.random()*600);
+      const num = "+9198"+Math.floor(10000000+Math.random()*89999999);
+      arr.push({callId:ts+"_"+num,number:num,name:Math.random()>.4?names[Math.floor(Math.random()*names.length)]:"",
+        type:t,timestamp:ts,durationSec:dur,
+        recordingUrl:(d.recordingSupported&&dur>0&&Math.random()>.5)?"#demo-rec":""});
+    }
+    arr.sort((a,b)=>b.timestamp-a.timestamp);
+    d.totalCalls = arr.length;
+    cb[d.deviceId]=arr;
+  });
+  devices = devs; callsByDevice = cb; activeDevice = "ALL";
+}
+
+/* ---------- Rendering ---------- */
+const $ = s=>document.querySelector(s);
+const fmtDate = ts => new Date(ts).toLocaleString(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+const fmtDur = s => s>=60?`${Math.floor(s/60)}m ${s%60}s`:`${s}s`;
+const fmtAgo = ts => { const m=(Date.now()-ts)/60000; if(m<2)return"just now"; if(m<60)return`${Math.round(m)}m ago`;
+  if(m<1440)return`${Math.round(m/60)}h ago`; return `${Math.round(m/1440)}d ago`; };
+
+function allCalls(){
+  // Pool every device's calls, tagging each with its device label.
+  const out = [];
+  devices.forEach(d=>(callsByDevice[d.deviceId]||[]).forEach(c=>out.push({...c,_dev:d.label})));
+  return out.sort((a,b)=>b.timestamp-a.timestamp);
+}
+
+function renderDevices(){
+  const el = $("#deviceList"); el.innerHTML="";
+
+  // Pooled "All devices" entry — the shared view every device in the fleet sees.
+  const total = allCalls().length;
+  const allDiv = document.createElement("div");
+  allDiv.className = "dev"+(activeDevice==="ALL"?" active":"");
+  allDiv.innerHTML = `<div class="nm">📊 All devices</div>
+    <div class="mt">${devices.length} devices · ${total} calls pooled</div>`;
+  allDiv.onclick = ()=>{ activeDevice="ALL"; renderAll(); };
+  el.appendChild(allDiv);
+
+  devices.forEach(d=>{
+    const online = (Date.now()-d.lastSeen) < 10*60000;
+    const div = document.createElement("div");
+    div.className = "dev"+(d.deviceId===activeDevice?" active":"");
+    div.innerHTML = `<div class="nm"><span class="dot ${online?'on':'off'}"></span>${esc(d.label)}</div>
+      <div class="mt">${esc(d.model)} · ${esc(d.androidVersion)}</div>
+      <div class="mt">${(callsByDevice[d.deviceId]||[]).length} calls · ${fmtAgo(d.lastSeen)}</div>
+      <div class="mt">${d.recordingSupported?'🎙 recording supported':'🚫 recording blocked by OS'}</div>`;
+    div.onclick = ()=>{ activeDevice=d.deviceId; renderAll(); };
+    el.appendChild(div);
+  });
+}
+
+function currentCalls(){
+  let list = (activeDevice==="ALL") ? allCalls() : (callsByDevice[activeDevice]||[]).slice();
+  const q = $("#search").value.trim().toLowerCase();
+  const tf = $("#typeFilter").value;
+  const from = $("#fromDate").value ? new Date($("#fromDate").value).getTime() : null;
+  const to = $("#toDate").value ? new Date($("#toDate").value).getTime()+86400_000 : null;
+  if(q) list = list.filter(c=>c.number.toLowerCase().includes(q)||(c.name||"").toLowerCase().includes(q));
+  if(tf) list = list.filter(c=>c.type===tf);
+  if(from) list = list.filter(c=>c.timestamp>=from);
+  if(to) list = list.filter(c=>c.timestamp<to);
+  list.sort((a,b)=>{ const x=a[sortKey],y=b[sortKey];
+    if(typeof x==="string")return sortDir*x.localeCompare(y); return sortDir*((x||0)-(y||0)); });
+  return list;
+}
+
+function renderStats(){
+  const all = (activeDevice==="ALL") ? allCalls() : (callsByDevice[activeDevice]||[]);
+  const inc = all.filter(c=>c.type==="INCOMING").length;
+  const out = all.filter(c=>c.type==="OUTGOING").length;
+  const miss = all.filter(c=>c.type==="MISSED").length;
+  const recs = all.filter(c=>c.recordingUrl).length;
+  const totalMin = Math.round(all.reduce((s,c)=>s+c.durationSec,0)/60);
+  const cards = [
+    ["Total calls",all.length],["Incoming",inc],["Outgoing",out],
+    ["Missed",miss],["Talk time",totalMin+" min"],["Recordings",recs]
+  ];
+  $("#statCards").innerHTML = cards.map(c=>`<div class="card"><div class="k">${c[0]}</div><div class="v">${c[1]}</div></div>`).join("");
+}
+
+function tagClass(t){return t==="INCOMING"?"t-in":t==="OUTGOING"?"t-out":t==="MISSED"?"t-miss":"t-rej";}
+function esc(s){return (s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));}
+
+let _recList = [];
+function renderTable(){
+  const list = currentCalls();
+  _recList = list;
+  const tb = $("#rows");
+  tb.innerHTML = list.map((c,i)=>{
+    const devTag = (activeDevice==="ALL"&&c._dev)?`<span class="tag t-rej" style="margin-left:6px">${esc(c._dev)}</span>`:"";
+    const who = c.name?`<strong>${esc(c.name)}</strong><br><span class="muted">${esc(c.number)}</span>`:esc(c.number);
+    const rec = c.recordingUrl
+      ? (c.recordingUrl==="#demo-rec"
+          ? '<span class="muted">▶ demo</span>'
+          : `<button class="btn ghost" style="padding:4px 10px" onclick="playRec(${i})">▶ play</button>`)
+      : '<span class="muted">—</span>';
+    return `<tr>
+      <td>${who}${devTag}</td>
+      <td><span class="tag ${tagClass(c.type)}">${c.type}</span></td>
+      <td>${fmtDate(c.timestamp)}</td>
+      <td>${fmtDur(c.durationSec)}</td>
+      <td class="rec">${rec}</td>
+    </tr>`;
+  }).join("");
+  $("#emptyState").style.display = list.length?"none":"block";
+}
+
+function playRec(i){
+  const c = _recList[i]; if(!c||!c.recordingUrl) return;
+  const bar = $("#playerBar");
+  $("#playerTitle").textContent = (c.name||c.number)+" · "+fmtDate(c.timestamp);
+  const audio = $("#player"); audio.src = c.recordingUrl; bar.style.display="flex"; audio.play();
+}
+window.playRec = playRec;
+
+function renderAll(){ renderDevices(); renderStats(); renderTable(); }
+
+/* ---------- Export ---------- */
+function activeLabel(){
+  if(activeDevice==="ALL") return "All devices";
+  const d = devices.find(x=>x.deviceId===activeDevice); return d?d.label:"device";
+}
+function exportCsv(){
+  const list = currentCalls();
+  const label = activeLabel();
+  const head = ["Device","Name","Number","Type","Timestamp","Duration(s)","Recording"];
+  const rows = list.map(c=>[c._dev||label,c.name,c.number,c.type,new Date(c.timestamp).toISOString(),c.durationSec,c.recordingUrl&&c.recordingUrl!=="#demo-rec"?"yes":"no"]);
+  const csv = [head,...rows].map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+  download(csv,`callfleet_${label}_${Date.now()}.csv`,"text/csv");
+}
+function exportHtml(){
+  const list = currentCalls();
+  const label = activeLabel();
+  const rows = list.map(c=>`<tr><td>${esc(c._dev||label)}</td><td>${esc(c.name)||esc(c.number)}</td><td>${esc(c.number)}</td><td>${c.type}</td><td>${fmtDate(c.timestamp)}</td><td>${fmtDur(c.durationSec)}</td></tr>`).join("");
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>CallFleet report — ${esc(label)}</title>
+  <style>body{font-family:Arial,sans-serif;margin:30px;color:#111}h1{margin:0}p{color:#555}
+  table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:13px}
+  th{background:#f3f5f8}</style></head><body>
+  <h1>CallFleet report</h1><p>${esc(label)} · generated ${new Date().toLocaleString()} · ${list.length} calls</p>
+  <table><thead><tr><th>Device</th><th>Contact</th><th>Number</th><th>Type</th><th>When</th><th>Duration</th></tr></thead><tbody>${rows}</tbody></table>
+  </body></html>`;
+  download(html,`callfleet_${label}_${Date.now()}.html`,"text/html");
+}
+function download(content,name,type){
+  // When embedded in the CallFleet Android app, save through the native bridge
+  // (WebViews can't trigger ordinary downloads). In a normal browser, fall back
+  // to a standard download link.
+  if(window.AndroidExport && typeof window.AndroidExport.saveFile==="function"){
+    const b64 = btoa(unescape(encodeURIComponent(content)));
+    window.AndroidExport.saveFile(name,type,b64);
+    return;
+  }
+  const blob = new Blob([content],{type}); const a=document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ---------- Firebase (live) ---------- */
+function parseConfig(txt){
+  // accept pure JSON or a JS "firebaseConfig = {…}" blob
+  const m = txt.match(/\{[\s\S]*\}/); if(!m) throw new Error("No config object found");
+  let s = m[0].replace(/(\w+)\s*:/g,'"$1":').replace(/'/g,'"').replace(/,\s*}/g,"}");
+  return JSON.parse(s);
+}
+let _app = null;
+async function connectLive(cfg,fleetId){
+  if(!fleetId || fleetId.length<4) throw new Error("Enter the fleet code used on your devices.");
+  fleetId = fleetId.trim().toLowerCase();
+  if(!_app) _app = firebase.initializeApp(cfg);
+  await firebase.auth().signInAnonymously();
+  const db = firebase.firestore();
+  const base = db.collection("fleets").doc(fleetId).collection("devices");
+  const devSnap = await base.get();
+  const devs = []; const cb = {};
+  for(const doc of devSnap.docs){
+    const d = doc.data(); d.deviceId = doc.id; d.lastSeen = d.lastSeen||0; devs.push(d);
+    const callSnap = await base.doc(doc.id).collection("calls")
+      .orderBy("timestamp","desc").limit(2000).get();
+    cb[doc.id] = callSnap.docs.map(x=>x.data());
+  }
+  if(!devs.length) throw new Error("Connected to fleet \""+fleetId+"\", but no devices have enrolled yet.");
+  devices = devs; callsByDevice = cb; activeDevice = "ALL";
+  MODE="live";
+  $("#modePill").className="pill live";
+  $("#modePill").textContent="Live · fleet "+fleetId+" · "+devs.length+" devices";
+  renderAll();
+}
+
+/** Inside the Android app, config + fleet code are injected natively. */
+async function tryAutoBoot(){
+  if(typeof window.CallFleetBoot==="undefined") return false;
+  try{
+    const cfg = JSON.parse(window.CallFleetBoot.getFirebaseConfig());
+    const fleetId = window.CallFleetBoot.getFleetId();
+    await connectLive(cfg, fleetId);
+    return true;
+  }catch(e){ console.warn("auto-boot failed",e); return false; }
+}
+
+/* ---------- Wiring ---------- */
+$("#connectBtn").onclick = ()=> $("#connectModal").classList.add("show");
+$("#cancelConnect").onclick = ()=> $("#connectModal").classList.remove("show");
+$("#doConnect").onclick = async ()=>{
+  try{
+    const cfg = parseConfig($("#cfgInput").value);
+    await connectLive(cfg,$("#fleetInput").value.trim());
+    $("#connectModal").classList.remove("show");
+  }catch(e){ alert("Could not connect: "+e.message); }
+};
+["#search","#typeFilter","#fromDate","#toDate"].forEach(s=>$(s).addEventListener("input",renderTable));
+$("#clearBtn").onclick = ()=>{ $("#search").value="";$("#typeFilter").value="";$("#fromDate").value="";$("#toDate").value="";renderTable(); };
+document.querySelectorAll("th[data-sort]").forEach(th=>th.onclick=()=>{
+  const k=th.dataset.sort; sortDir = (sortKey===k)? -sortDir : -1; sortKey=k; renderTable();
+});
+$("#exportCsvBtn").onclick = exportCsv;
+$("#exportHtmlBtn").onclick = exportHtml;
+$("#printBtn").onclick = ()=>window.print();
+
+/* ---------- Go ---------- */
+makeDemo(); renderAll();
+// If we're inside the app, connect to the live fleet automatically.
+tryAutoBoot();
+</script>
+</body>
+</html>

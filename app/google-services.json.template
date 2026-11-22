@@ -1,0 +1,19 @@
+{
+  "_comment": "RENAME this file to google-services.json after you download the real one from Firebase Console > Project Settings > Your apps > Android app (package name com.callfleet.app). Do NOT hand-edit values; use the file Firebase gives you.",
+  "project_info": {
+    "project_number": "REPLACE_ME",
+    "project_id": "REPLACE_ME",
+    "storage_bucket": "REPLACE_ME.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "REPLACE_ME",
+        "android_client_info": { "package_name": "com.callfleet.app" }
+      },
+      "api_key": [ { "current_key": "REPLACE_ME" } ],
+      "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+    }
+  ],
+  "configuration_version": "1"
+}

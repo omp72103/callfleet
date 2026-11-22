@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">CallFleet</string>
+
+    <string name="welcome_tagline">Transparent call-log tracking for phones you own or manage.</string>
+    <string name="enroll_this_device">Enrol this device</string>
+    <string name="enroll_sub">Tap if this is a phone to be monitored (shows a consent screen).</string>
+    <string name="open_admin_panel">Open shared dashboard</string>
+    <string name="admin_sub">View pooled call logs across every device in your fleet.</string>
+    <string name="fleet_code_hint">Fleet code</string>
+    <string name="fleet_code_help">Use the SAME code on every phone you want to share one dashboard.</string>
+
+    <string name="consent_title">This device will be monitored</string>
+    <string name="consent_body">By continuing, you agree that this phone is enrolled in CallFleet. While enrolled:\n\n• This device’s call history (numbers, times, direction, duration) is read and synced to an admin panel controlled by the account owner.\n\n• Where the device permits it, calls may be recorded. A permanent notification will always be shown while monitoring is active.\n\n• You can stop monitoring at any time by opening this app and removing its permissions, or uninstalling it.\n\nOnly enrol a phone you own or manage, and make sure everyone who uses it knows it is monitored. Recording calls without the knowledge of the other party may be illegal where you live — you are responsible for using this lawfully.</string>
+    <string name="device_name_hint">Name this device (e.g. Field phone 1)</string>
+    <string name="consent_agree">I understand and agree</string>
+    <string name="consent_decline">No, exit</string>
+
+    <string name="status_idle">Waiting for permissions…</string>
+    <string name="grant_permissions">Grant permissions</string>
+    <string name="recent_calls">Recent calls on this device</string>
+    <string name="no_calls">No calls found yet.</string>
+</resources>
